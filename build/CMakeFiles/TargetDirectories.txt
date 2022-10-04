@@ -1,0 +1,7 @@
+/home/glauz/projects/boids/build/CMakeFiles/boids.dir
+/home/glauz/projects/boids/build/CMakeFiles/edit_cache.dir
+/home/glauz/projects/boids/build/CMakeFiles/rebuild_cache.dir
+/home/glauz/projects/boids/build/CMakeFiles/list_install_components.dir
+/home/glauz/projects/boids/build/CMakeFiles/install.dir
+/home/glauz/projects/boids/build/CMakeFiles/install/local.dir
+/home/glauz/projects/boids/build/CMakeFiles/install/strip.dir
