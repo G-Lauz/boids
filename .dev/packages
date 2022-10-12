@@ -1,0 +1,12 @@
+cmake
+g++
+gcc
+gdb
+libglfw3-dev
+libglu1-mesa-dev
+libx11-dev
+libxrender-dev
+make
+openssh-server
+rsync
+zip

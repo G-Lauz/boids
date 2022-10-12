@@ -3,4 +3,5 @@ g++
 gcc
 libgl-dev
 libx11-dev
+libxrender-dev
 make

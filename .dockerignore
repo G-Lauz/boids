@@ -1,2 +1,6 @@
 build/
-Dockerfile
+**/Dockerfile*
+**/.dockerignore
+**/.git
+**/.gitignore
+README.md
