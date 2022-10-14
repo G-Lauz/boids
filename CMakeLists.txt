@@ -1,28 +1,30 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.16)
 
-PROJECT(Boids)
-
-SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-modules ${CMAKE_MODULE_PATH})
-
-CONFIGURE_FILE(
-    "${PROJECT_SOURCE_DIR}/source/build_config.h.in"
-    "${PROJECT_BINARY_DIR}/include/build_config.h"
+PROJECT(Boids
+    VERSION 0.1 
+    DESCRIPTION "A C++ template project"
+    LANGUAGES CXX
 )
+
+if (NOT CMAKE_BUILD_TYPE)
+    MESSAGE(STATUS "No build type selected, default to RELEASE")
+    SET(CMAKE_BUILD_TYPE "RELEASE")
+endif()
+
+SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 FIND_PACKAGE(OpenGL REQUIRED)
 FIND_PACKAGE(X11 REQUIRED)
 FIND_PACKAGE(glfw3 REQUIRED)
 
-# ADD_SUBDIRECTORY("${PROJECT_SOURCE_DIR}/source/externals/glad")
-
-INCLUDE_DIRECTORIES(
-    "${PROJECT_BINARY_DIR}/include/"
-    # "${PROJECT_SOURCE_DIRE}/source/core/include"
-    "${PROJECT_SOURCE_DIR}/deps/"
+CONFIGURE_FILE(
+    "${PROJECT_SOURCE_DIR}/source/build_config.h.in"
+    "${PROJECT_BINARY_DIR}/include/build_config.h"
 )
+INCLUDE_DIRECTORIES("${PROJECT_BINARY_DIR}/include/")
 
-SET(GLAD_GL "${PROJECT_SOURCE_DIR}/deps/glad/gl.h")
-# SET(GLAD_GL "${PROJECT_SOURCE_DIR}/source/externals/glad/include/gl.h")
+# ADD_SUBDIRECTORY("${PROJECT_SOURCE_DIR}/source/externals/glad")
+ADD_SUBDIRECTORY("${PROJECT_SOURCE_DIR}/source/externals")
 
 ADD_EXECUTABLE(boids main.cpp)
 TARGET_LINK_LIBRARIES(boids GL X11 Xrender pthread)
@@ -30,12 +32,11 @@ TARGET_LINK_LIBRARIES(boids GL X11 Xrender pthread)
 ADD_EXECUTABLE(boids2 main2.cpp)
 TARGET_LINK_LIBRARIES(boids2 GL X11 GLU pthread)
 
-ADD_EXECUTABLE(boids3 main_glfw.cpp ${GLAD_GL})
+ADD_EXECUTABLE(boids3 main_glfw.cpp)
+TARGET_LINK_LIBRARIES(boids3 PRIVATE GL glad glfw pthread)
 
-# ADD_EXECUTABLE(boids3 main_glfw.cpp)
-TARGET_LINK_LIBRARIES(boids3 PRIVATE GL glfw pthread)
-# TARGET_LINK_LIBRARIES(boids3 PRIVATE GL glfw glad pthread)
-# TARGET_INCLUDE_DIRECTORIES(boids3 PRIVATE "${PROJECT_SOURCE_DIRE}/source/core/include")
+ADD_EXECUTABLE(myboid mymain.cpp ${GLAD_GL})
+TARGET_LINK_LIBRARIES(myboid PRIVATE GL glad glfw pthread)
 
 INSTALL(TARGETS ${EXECUTABLE_NAME} DESTINATION "bin")
 
