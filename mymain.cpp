@@ -1,10 +1,29 @@
+// ref: https://learnopengl.com/Getting-started/Hello-Triangle
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 
 #include <iostream>
 
 #include "build_config.h"
+
+static const char* vertex_shader_src = 
+"#version 450\n"
+"layout (location = 0) in vec3 aPos;\n"
+"\n"
+"void main()\n"
+"{\n"
+"    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"}\n";
+
+static const char* fragment_shader_src =
+"#version 450\n"
+"out vec4 FragColor;\n"
+"void main()\n"
+"{\n"
+"    FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);\n"
+"}\n";
 
 // Part  of GLFW context
 void error_callback(int error, const char* description)
@@ -12,29 +31,183 @@ void error_callback(int error, const char* description)
     std::cerr << "Error: " << description << std::endl;
 }
 
+// Part  of GLFW context
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+}
+
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    // make sure the viewport matches the new window dimensions; note that width and 
+    // height will be significantly larger than specified on retina displays.
+    glViewport(0, 0, width, height);
+}
+
 int main(void) 
 {
-    // Start GLFW context
+    // init
     if (!glfwInit())
         return 1; // Failed to initialize
 
-    glfwSetErrorCallback(error_callback);
+    // configuration
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(640, 480, PROJECT_NAME, NULL, NULL);
     if (!window)
+    {
+        glfwTerminate();
         return 1; // Failed to create window or OpenGL context
-
+    }
     glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
+
+    // define callback
+    glfwSetErrorCallback(error_callback);
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    // GLAD load all OpenGL function pointers
+    if (!gladLoadGL(glfwGetProcAddress)) {
+        std::cerr << "Failed to initialize GLAD" << std::endl;
+        return 1;
+    }
+
+    glfwSwapInterval(1);
+
+    // Build and compile shader program
+    // --------------------------------
+    // Vertex shader
+    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex_shader, 1, &vertex_shader_src, NULL);
+    glCompileShader(vertex_shader);
+    int  success_vertex; // Check if compile succesfully
+    char infoLog_vertex[512];
+    glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success_vertex);
+    if(!success_vertex)
+    {
+        glGetShaderInfoLog(vertex_shader, 512, NULL, infoLog_vertex);
+        std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog_vertex << std::endl;
+    }
+
+    // Fragment shader (color)
+    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment_shader, 1, &fragment_shader_src, NULL);
+    glCompileShader(fragment_shader);
+    int  success_fragment; // Check if compile succesfully
+    char infoLog_fragment[512];
+    glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success_fragment);
+    if(!success_fragment)
+    {
+        glGetShaderInfoLog(vertex_shader, 512, NULL, infoLog_fragment);
+        std::cerr << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog_fragment << std::endl;
+    }
+
+    // link shaders
+    GLuint shader_program = glCreateProgram();
+    glAttachShader(shader_program, vertex_shader);
+    glAttachShader(shader_program, fragment_shader);
+    glLinkProgram(shader_program);
+    int success_program; // Check if linking succesfully
+    char infoLog_program[512];
+    glGetProgramiv(shader_program, GL_LINK_STATUS, &success_program);
+    if(!success_program) {
+        glGetProgramInfoLog(shader_program, 512, NULL, infoLog_program);
+        std::cerr << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog_fragment << std::endl;
+    }
+
+    // Clean we don't need them anymore
+    glDeleteShader(vertex_shader);
+    glDeleteShader(fragment_shader);
+
+    // Set up vertex data (and buffer(s)) and configure vertex attributes
+    // ------------------------------------------------------------------
+    float vertices[] = {
+        -0.25f, -0.5f, 0.0f, // bottom left
+        0.0f, -0.35f, 0.0f,  // bottom mid
+        0.25f, -0.5f, 0.0f,  // bottom right
+        0.0f, 0.5f, 0.0f    // top mid
+    };
+    GLuint indices[] = {  // note that we start from 0!
+        0, 1, 3,  // first Triangle
+        1, 2, 3   // second Triangle
+    };
+
+    // Vertex array object
+    GLuint vertex_array;
+    glGenVertexArrays(1, &vertex_array);
+    glBindVertexArray(vertex_array); // MUst bind before the vertex buffer(s) and then configure vertex attribute(s).
+
+    // Buffer
+    GLuint vertex_buffer;
+    glGenBuffers(1, &vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // Element Box Buffer
+    GLuint box_buffer;
+    glGenBuffers(1, &box_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, box_buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // linking vertex attributes
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // don't unbind while a VAO is active
+
+    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
+    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+    glBindVertexArray(0);
+
+
+    // TODO check OpenGL error
+
+    /*--------------------------*/
+    // context
+
+    // uncomment this call to draw in wireframe polygons.
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window))
     {
-        // Keep running
+        // int width, height;
+        // glfwGetFramebufferSize(window, &width, &height);
+        // glViewport(0, 0, width, height);
+
+        // Event loop
+
+        // render
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // rendering after this call will use program (shaders)
+        glUseProgram(shader_program);
+        glBindVertexArray(vertex_array); // bind the vertex array to draw its object
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
     }
+
+    //  end context
+    /*--------------------------*/
+
+    // optional: de-allocate all resources once they've outlived their purpose:
+    // ------------------------------------------------------------------------
+    glDeleteVertexArrays(1, &vertex_array);
+    glDeleteBuffers(1, &vertex_buffer);
+    glDeleteBuffers(1, &box_buffer);
+    glDeleteProgram(shader_program);
 
     glfwDestroyWindow(window);
     glfwTerminate();
-    // End GLFW context
 
     return 0;
 }
