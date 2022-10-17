@@ -1,0 +1,7 @@
+#ifndef BUILD_CONFIG_H
+#define BUILD_CONFIG_H
+
+#define ROOT_DIR ${CMAKE_SOURCE_DIR}/
+#define PROJECT_NAME "${PROJECT_NAME}"
+
+#endif // BUILD_CONFIG_H

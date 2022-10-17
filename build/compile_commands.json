@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/home/glauz/projects/boids/build",
-  "command": "/usr/bin/g++  -I/home/glauz/projects/boids/build/include -g -o CMakeFiles/boids.dir/main.cpp.o -c /home/glauz/projects/boids/main.cpp",
-  "file": "/home/glauz/projects/boids/main.cpp"
-}
-]
