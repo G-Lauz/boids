@@ -65,7 +65,7 @@ int main(void)
 
     // Build and compile shader program
     // --------------------------------
-    Shader* shader = new Shader("source/core/shaders/simple-shaders/vertex.glsl", "source/core/shaders/simple-shaders/fragment.glsl"); // TODO fix path
+    boids::Shader* shader = new boids::Shader("source/core/shaders/simple-shaders/vertex.glsl", "source/core/shaders/simple-shaders/fragment.glsl"); // TODO fix path
 
     // Set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
