@@ -1,184 +1,211 @@
-# include "matrix.h"
+#include "matrix.h"
 
 
-boids::Matrix::Matrix()
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+boids::Matrix<T, COLS, ROWS>::Matrix()
 {
-    m_shape = {4,4};
-    m_length = m_shape[0] * m_shape[1];
-    m_matrix = std::vector<float>(m_length, 0);
+    m_length = ROWS * COLS;
+    m_matrix = new T[m_length]();
 }
 
-boids::Matrix::Matrix(const shape2d& shape):
-    m_shape(shape)
-{   
-    m_length = m_shape[0] * m_shape[1];
-    m_matrix = std::vector<float>(m_length, 0);
-}
 
-boids::Matrix::Matrix(const float* matrix, const shape2d& shape):
-    m_shape(shape)
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+boids::Matrix<T, COLS, ROWS>::Matrix(const T matrix[])
 {
-    // TODO check if matrix size match shape length
-    m_length = m_shape[0] * m_shape[1];
-    m_matrix = std::vector<float>(matrix, matrix + m_length);
+    m_length = ROWS * COLS;
+    m_matrix = new T[m_length]();
+    std::copy(matrix, matrix + m_length, m_matrix);
 }
 
-boids::Matrix::~Matrix() {
 
-}
-
-float& boids::Matrix::operator[](shape2d idx)
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+boids::Matrix<T, COLS, ROWS>::Matrix(const Matrix &matrix)
 {
-    if (idx[0] > m_shape[0]-1 || idx[1] > m_shape[1]-1) 
+    m_length = matrix.m_length;
+    m_matrix = new T[m_length]();
+    std::copy(matrix.m_matrix, matrix.m_matrix + m_length, m_matrix);
+}
+
+
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+boids::Matrix<T, COLS, ROWS>::~Matrix() {
+    delete[] m_matrix;
+}
+
+
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+T& boids::Matrix<T, COLS, ROWS>::operator[](std::array<int, 2> idx)
+{
+    if (idx[0] > COLS-1 || idx[1] > ROWS-1) 
     {
         std::cout << "Index out of bounds." << std::endl;
         exit(1);
     }
 
-    return m_matrix[idx[1] + idx[0] * m_shape[1]];
+    return m_matrix[idx[0] + idx[1] * COLS];
 }
 
-const float& boids::Matrix::operator[](shape2d idx) const
+
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+const T& boids::Matrix<T, COLS, ROWS>::operator[](std::array<int, 2> idx) const
 {
-    if (idx[0] > m_shape[0]-1 || idx[1] > m_shape[1]-1) 
+    if (idx[0] > COLS-1 || idx[1] > ROWS-1) 
     {
         std::cout << "Index out of bounds." << std::endl;
         exit(1);
     }
 
-    return m_matrix[idx[1] + idx[0] * m_shape[1]];
+    return m_matrix[idx[0] + idx[1] * COLS];
 }
 
-boids::Matrix boids::Matrix::operator+(Matrix const &b)
+
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+boids::Matrix<T, COLS, ROWS> boids::Matrix<T, COLS, ROWS>::operator+(const Matrix &b)
 {
     return add(b);
 }
 
-boids::Matrix boids::Matrix::operator-(Matrix const &b)
+
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+boids::Matrix<T, COLS, ROWS> boids::Matrix<T, COLS, ROWS>::operator-(const Matrix &b)
 {
     return substract(b);
 }
 
-boids::Matrix boids::Matrix::operator*(float const &b)
+
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+boids::Matrix<T, COLS, ROWS> boids::Matrix<T, COLS, ROWS>::operator*(const T &b)
 {
     return scalar_product(b);
 }
 
-boids::Matrix boids::Matrix::operator*(const float* b)
-{
-    std::cout << sizeof(b)/sizeof(b[0]) << std::endl;
-    Matrix mat(b, {1,4});
-    mat.print();
-    return multiply(mat);
-}
 
-boids::Matrix boids::Matrix::operator*(Matrix const &b)
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+boids::Matrix<T, COLS, ROWS> boids::Matrix<T, COLS, ROWS>::add(const Matrix &b)
 {
-    return multiply(b);
-}
-
-boids::Matrix boids::Matrix::add(Matrix const &b)
-{
-    if (m_shape != b.m_shape)
+    if (ROWS != b.get_rows() && COLS != b.get_cols())
     {
         std::cout << "Can't add two matrix of different shape." << std::endl;
         exit(1);
     }
 
-    Matrix result(m_shape);
+    Matrix<T, COLS, ROWS> result;
     for (int i =0; i < m_length; i++)
         result.m_matrix[i] = m_matrix[i] + b.m_matrix[i];
 
     return result;
 }
 
-boids::Matrix boids::Matrix::substract(Matrix const &b)
+
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+boids::Matrix<T, COLS, ROWS> boids::Matrix<T, COLS, ROWS>::substract(const Matrix &b)
 {
-    if (m_shape != b.m_shape)
+    if (ROWS != b.get_rows() && COLS != b.get_cols())
     {
         std::cout << "Can't substract two matrix of different shape." << std::endl;
         exit(1);
     }
 
-    Matrix result(m_shape);
+    Matrix<T, COLS, ROWS> result;
     for (int i =0; i < m_length; i++)
         result.m_matrix[i] = m_matrix[i] - b.m_matrix[i];
 
     return result;
 }
 
-boids::Matrix boids::Matrix::scalar_product(float const &b)
+
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+boids::Matrix<T, COLS, ROWS> boids::Matrix<T, COLS, ROWS>::scalar_product(const T &b)
 {
-    Matrix result(m_shape);
+    Matrix<T, COLS, ROWS> result;
     for (int i = 0; i < m_length; i++)
         result.m_matrix[i] = m_matrix[i] * b;
     return result;
 }
 
-boids::Matrix boids::Matrix::multiply(Matrix const &b)
+
+template <typename T, std::size_t COLS, std::size_t ROWS>
+boids::Matrix<T, COLS, ROWS> boids::Matrix<T, COLS, ROWS>::indentity()
 {
-    std::cout << "(" << m_shape[0] << "," << m_shape[1] << ") * (" << b.m_shape[0] << "," << b.m_shape[1] << ")" << std::endl;
-    this->print();
-    b.print();
-
-
-    if (m_shape[1] != b.m_shape[0])
-    {
-        std::cout << "Column of the left matrix doesn't match the rows of the right." << std::endl;
-        exit(1);
-    }
-
-    Matrix result({m_shape[0], b.m_shape[1]});
-
-    for (int i = 0; i < m_shape[0]; i++)
-        for (int j = 0; j < b.m_shape[1]; j++)
-            for (int k = 0; k < m_shape[1]; k++)
-                result[{i,j}] += (*this)[{i,k}] * b[{k,j}];
-
+    Matrix<T, COLS, ROWS> result;
+    for (int i = 0; i < ROWS; i++)
+        for (int j = 0; j < COLS; j++)
+            result[{j,i}] = i==j ? 1.f : 0.f;
     return result;
 }
 
-boids::Matrix boids::Matrix::indentity(const shape2d& shape)
+
+template <typename T, std::size_t COLS, std::size_t ROWS>
+void boids::Matrix<T, COLS, ROWS>::translate(const Matrix<float, 1, 3> &vec) 
 {
-    Matrix result(shape);
-    for (int i = 0; i < shape[0]; i++)
-        for (int j = 0; j < shape[1]; j++)
-            result[{i,j}] = i==j ? 1.f : 0.f;
-    return result;
+    for (int i = 0; i < vec.get_rows(); i++)
+        (*this)[{COLS-1, i}] += vec[{0,i}];
 }
 
-void boids::Matrix::translate(const float* vector) 
-{
-    for (int i = 0; i < m_shape[1]-1; i++)
-        (*this)[{i, m_shape[1]-1}] += vector[i];
-}
 
-float* boids::Matrix::value_ptr()
+template <typename T, std::size_t COLS, std::size_t ROWS>
+T* boids::Matrix<T, COLS, ROWS>::value_ptr()
 {
     return &m_matrix[0];
 }
 
-void boids::Matrix::print() const
+
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+void boids::Matrix<T, COLS, ROWS>::print() const
 {
     std::string buf = "";
 
     buf.append("{ ");
-    for (int i = 0; i < m_shape[0]; i++)
+    for (int i = 0; i < ROWS; i++)
     {
         if (i != 0)
             buf.append("  ");
-
+        
         buf.append("{ ");
-        for (int j = 0; j < m_shape[1]; j++)
+        for (int j = 0; j < COLS; j++)
         {
-            buf.append(std::to_string((*this)[{i,j}]) + " ");
+            buf.append(std::to_string((*this)[{j,i}]) + " ");
         }
         buf.append("}");
 
-        if (i != m_shape[0]-1)
+        constexpr size_t colsm1 = ROWS-1;
+        if (i != colsm1)
             buf.append("\n");
     }
     buf.append(" }");
 
     std::cout << buf << std::endl;
 }
+
+
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+constexpr size_t boids::Matrix<T, COLS, ROWS>::get_rows() const
+{
+    return ROWS;
+}
+
+
+template<typename T, std::size_t COLS, std::size_t ROWS> 
+constexpr size_t boids::Matrix<T, COLS, ROWS>::get_cols() const
+{
+    return COLS;
+}
+
+
+template class boids::Matrix<float, 2, 1>;
+template class boids::Matrix<float, 3, 1>;
+template class boids::Matrix<float, 4, 1>;
+
+template class boids::Matrix<float, 1, 2>;
+template class boids::Matrix<float, 1, 3>;
+template class boids::Matrix<float, 1, 4>;
+
+template class boids::Matrix<float, 2, 2>;
+template class boids::Matrix<float, 3, 3>;
+template class boids::Matrix<float, 4, 4>;
+
+template class boids::Matrix<float, 2, 3>;
+template class boids::Matrix<float, 3, 2>;
+
+template class boids::Matrix<float, 3, 4>;
+template class boids::Matrix<float, 4, 3>;

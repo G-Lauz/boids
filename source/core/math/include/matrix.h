@@ -1,48 +1,83 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#include <algorithm>
 #include <array>
 #include <iostream>
-#include <vector>
-#include <string>
-
-typedef std::array<int, 2> shape2d;
 
 namespace boids 
 {
+    template <typename T, std::size_t COLS, std::size_t ROWS>
     class Matrix
     {
         private:
             size_t m_length;
-            shape2d m_shape;
-            std::vector<float> m_matrix;
+            T* m_matrix;
 
         public:
             Matrix();
-            Matrix(const shape2d& shape);
-            Matrix(const float* matrix, const shape2d& shape);
+            Matrix(const T matrix[]);
+            Matrix(const Matrix &matrix);
             ~Matrix();
 
-            float& operator[](shape2d idx);
-            const float& operator[](shape2d idx) const;
-            Matrix operator+(Matrix const &b);
-            Matrix operator-(Matrix const &b);
-            Matrix operator*(float const &b);
-            Matrix operator*(const float* b);
-            Matrix operator*(Matrix const &b);
+            T& operator[](std::array<int, 2> idx);
+            const T& operator[](std::array<int, 2> idx) const;
+            Matrix operator+(const Matrix &b);
+            Matrix operator-(const Matrix &b);
+            Matrix operator*(const T &b);
 
-            Matrix add(Matrix const &b);
-            Matrix substract(Matrix const &b);
-            Matrix scalar_product(float const &b);
-            Matrix multiply(Matrix const &b);
+            // TODO move the definition in the .cpp
+            template<std::size_t K>
+            Matrix<T, K, ROWS> operator*(const Matrix<T, K, COLS> &b)
+            {
+                return multiply(b);
+            }
 
-            static Matrix indentity(const shape2d& shape);
-            void translate(const float* vector);
+            Matrix add(const Matrix &b);
+            Matrix substract(const Matrix &b);
+            Matrix scalar_product(const T &b);
+            
+            // TODO move the definition in the .cpp
+            template<std::size_t K>
+            Matrix<T, K, ROWS> multiply(const Matrix<T, K, COLS>  &b)
+            {
+                Matrix<T, K, ROWS> result;
 
-            float* value_ptr();
+                for (int i = 0; i < K; i++)
+                    for (int j = 0; j < ROWS; j++)
+                        for (int k = 0; k < COLS; k++)
+                            result[{j,i}] += (*this)[{k,i}] * b[{j,k}];
+
+                return result;
+            }
+
+            static Matrix indentity();
+            void translate(const Matrix<float, 1, 3> &vec);
+
+            T* value_ptr();
 
             void print() const;
+
+            constexpr size_t get_rows() const;
+            constexpr size_t get_cols() const;
     };
 }
+
+typedef boids::Matrix<float, 2, 1> vec2;
+typedef boids::Matrix<float, 3, 1> vec3;
+typedef boids::Matrix<float, 4, 1> vec4;
+
+typedef boids::Matrix<float, 1, 2> vec2h;
+typedef boids::Matrix<float, 1, 3> vec3h;
+typedef boids::Matrix<float, 1, 4> vec4h;
+
+typedef boids::Matrix<float, 2, 2> mat2;
+typedef boids::Matrix<float, 3, 3> mat3;
+typedef boids::Matrix<float, 4, 4> mat4;
+
+typedef boids::Matrix<float, 2, 3> mat2x3;
+typedef boids::Matrix<float, 3, 2> mat3x2;
+typedef boids::Matrix<float, 3, 4> mat3x4;
+typedef boids::Matrix<float, 4, 3> mat4x3;
 
 #endif // MATRIX_H
