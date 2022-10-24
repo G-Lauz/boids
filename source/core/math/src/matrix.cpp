@@ -34,6 +34,16 @@ boids::Matrix<T, COLS, ROWS>::~Matrix() {
 
 
 template<typename T, std::size_t COLS, std::size_t ROWS> 
+boids::Matrix<T, COLS, ROWS>& boids::Matrix<T, COLS, ROWS>::operator=(const Matrix &matrix)
+{
+    m_length = matrix.m_length;
+    m_matrix = new T[m_length]();
+    std::copy(matrix.m_matrix, matrix.m_matrix + m_length, m_matrix);
+    return *this;
+}
+
+
+template<typename T, std::size_t COLS, std::size_t ROWS> 
 T& boids::Matrix<T, COLS, ROWS>::operator[](std::array<int, 2> idx)
 {
     if (idx[0] > COLS-1 || idx[1] > ROWS-1) 
@@ -90,7 +100,7 @@ boids::Matrix<T, COLS, ROWS> boids::Matrix<T, COLS, ROWS>::add(const Matrix &b)
     }
 
     Matrix<T, COLS, ROWS> result;
-    for (int i =0; i < m_length; i++)
+    for (int i = 0; i < m_length; i++)
         result.m_matrix[i] = m_matrix[i] + b.m_matrix[i];
 
     return result;
@@ -107,7 +117,7 @@ boids::Matrix<T, COLS, ROWS> boids::Matrix<T, COLS, ROWS>::substract(const Matri
     }
 
     Matrix<T, COLS, ROWS> result;
-    for (int i =0; i < m_length; i++)
+    for (int i = 0; i < m_length; i++)
         result.m_matrix[i] = m_matrix[i] - b.m_matrix[i];
 
     return result;
@@ -134,12 +144,43 @@ boids::Matrix<T, COLS, ROWS> boids::Matrix<T, COLS, ROWS>::indentity()
     return result;
 }
 
+template <typename T, std::size_t COLS, std::size_t ROWS>
+boids::Matrix<T, ROWS, COLS> boids::Matrix<T, COLS, ROWS>::transpose() const
+{
+    Matrix<T, ROWS, COLS> result;
+    for (int i = 0; i < ROWS; i++)
+        for (int j = 0; j < COLS; j++)
+            result[{i,j}] = (*this)[{j,i}];
+    return result;
+}
+
 
 template <typename T, std::size_t COLS, std::size_t ROWS>
-void boids::Matrix<T, COLS, ROWS>::translate(const Matrix<float, 1, 3> &vec) 
+void boids::Matrix<T, COLS, ROWS>::scale(float scale)
 {
-    for (int i = 0; i < vec.get_rows(); i++)
-        (*this)[{COLS-1, i}] += vec[{0,i}];
+    for (int i = 0; i < 3; i++)
+        (*this)[{i,i}] *= scale;
+}
+
+
+template <typename T, std::size_t COLS, std::size_t ROWS>
+void boids::Matrix<T, COLS, ROWS>::rotate(float angle, const float axis[3])
+{
+    Quaternion quaternion = Quaternion::axis_angle_to_quaternion(axis, angle);
+
+    float mat[16];
+    Quaternion::quaternion_to_rotation_matrix(quaternion, mat);
+    *this = *this * Matrix<T, COLS, ROWS>(mat);
+}
+
+
+template <typename T, std::size_t COLS, std::size_t ROWS>
+void boids::Matrix<T, COLS, ROWS>::translate(const float vec[3]) 
+{
+    Matrix<T, COLS, ROWS> result = Matrix<T, COLS, ROWS>::indentity();
+    for (int i = 0; i < 3; i++)
+        result[{COLS-1, i}] = vec[i];
+    *this = *this * result;
 }
 
 
@@ -192,20 +233,20 @@ constexpr size_t boids::Matrix<T, COLS, ROWS>::get_cols() const
 }
 
 
-template class boids::Matrix<float, 2, 1>;
-template class boids::Matrix<float, 3, 1>;
-template class boids::Matrix<float, 4, 1>;
+// template class boids::Matrix<float, 2, 1>;
+// template class boids::Matrix<float, 3, 1>;
+// template class boids::Matrix<float, 4, 1>;
 
-template class boids::Matrix<float, 1, 2>;
-template class boids::Matrix<float, 1, 3>;
-template class boids::Matrix<float, 1, 4>;
+// template class boids::Matrix<float, 1, 2>;
+// template class boids::Matrix<float, 1, 3>;
+// template class boids::Matrix<float, 1, 4>;
 
 template class boids::Matrix<float, 2, 2>;
 template class boids::Matrix<float, 3, 3>;
 template class boids::Matrix<float, 4, 4>;
 
-template class boids::Matrix<float, 2, 3>;
-template class boids::Matrix<float, 3, 2>;
+// template class boids::Matrix<float, 2, 3>;
+// template class boids::Matrix<float, 3, 2>;
 
-template class boids::Matrix<float, 3, 4>;
-template class boids::Matrix<float, 4, 3>;
+// template class boids::Matrix<float, 3, 4>;
+// template class boids::Matrix<float, 4, 3>;

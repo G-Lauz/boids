@@ -1,5 +1,10 @@
-SET(SOURCES "matrix.cpp")
-SET(HEADERS "matrix.h")
+set(FOLDER "math")
+SET(SOURCES "matrix.cpp"
+            "quaternion.cpp"
+)
+SET(HEADERS "matrix.h"
+            "quaternion.h"
+)
 
 INCLUDE(IncludeFolder)
-INCLUDE_FOLDER("math" ${SOURCES} ${HEADERS})
+INCLUDE_FOLDER()

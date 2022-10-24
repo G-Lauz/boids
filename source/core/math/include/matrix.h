@@ -5,6 +5,8 @@
 #include <array>
 #include <iostream>
 
+#include "quaternion.h"
+
 namespace boids 
 {
     template <typename T, std::size_t COLS, std::size_t ROWS>
@@ -20,6 +22,7 @@ namespace boids
             Matrix(const Matrix &matrix);
             ~Matrix();
 
+            Matrix& operator=(const Matrix &matrix);
             T& operator[](std::array<int, 2> idx);
             const T& operator[](std::array<int, 2> idx) const;
             Matrix operator+(const Matrix &b);
@@ -52,7 +55,10 @@ namespace boids
             }
 
             static Matrix indentity();
-            void translate(const Matrix<float, 1, 3> &vec);
+            boids::Matrix<T, ROWS, COLS> transpose() const;
+            void scale(float scale);
+            void rotate(float angle, const float axis[3]);
+            void translate(const float vec[3]);
 
             T* value_ptr();
 
@@ -63,21 +69,22 @@ namespace boids
     };
 }
 
-typedef boids::Matrix<float, 2, 1> vec2;
-typedef boids::Matrix<float, 3, 1> vec3;
-typedef boids::Matrix<float, 4, 1> vec4;
 
-typedef boids::Matrix<float, 1, 2> vec2h;
-typedef boids::Matrix<float, 1, 3> vec3h;
-typedef boids::Matrix<float, 1, 4> vec4h;
+// typedef boids::Matrix<float, 1, 2> vec2;
+// typedef boids::Matrix<float, 1, 3> vec3;
+// typedef boids::Matrix<float, 1, 4> vec4;
+
+// typedef boids::Matrix<float, 2, 1> vec2h;
+// typedef boids::Matrix<float, 3, 1> vec3h;
+// typedef boids::Matrix<float, 4, 1> vec4h;
 
 typedef boids::Matrix<float, 2, 2> mat2;
 typedef boids::Matrix<float, 3, 3> mat3;
 typedef boids::Matrix<float, 4, 4> mat4;
 
-typedef boids::Matrix<float, 2, 3> mat2x3;
-typedef boids::Matrix<float, 3, 2> mat3x2;
-typedef boids::Matrix<float, 3, 4> mat3x4;
-typedef boids::Matrix<float, 4, 3> mat4x3;
+// typedef boids::Matrix<float, 2, 3> mat2x3;
+// typedef boids::Matrix<float, 3, 2> mat3x2;
+// typedef boids::Matrix<float, 3, 4> mat3x4;
+// typedef boids::Matrix<float, 4, 3> mat4x3;
 
 #endif // MATRIX_H

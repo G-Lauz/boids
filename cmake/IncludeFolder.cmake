@@ -1,14 +1,13 @@
-# INCLUDE_FOLDER(FOLDER, SOURCES, HEADERS)
 MACRO(INCLUDE_FOLDER)
-    FOREACH(_header ${ARGV2})
-        SET(INSTALL_HEADERS "${INSTALL_HEADERS}" 
-                            "${ARGV0}/include/${_header}"
+    FOREACH(_header ${HEADERS})
+        SET(INSTALL_HEADERS "${INSTALL_HEADERS}"
+                            "${CMAKE_CURRENT_SOURCE_DIR}/${FOLDER}/include/${_header}"
         )
     ENDFOREACH()
 
-    FOREACH(_source ${ARGV1})
-        SET(SRC_FILES "${SRC_FILES}" 
-                      "${CMAKE_CURRENT_SOURCE_DIR}/${ARGV0}/src/${_source}"
+    FOREACH(_source ${SOURCES})
+        SET(SRC_FILES "${SRC_FILES}"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/${FOLDER}/src/${_source}"
         )
     ENDFOREACH()
 
