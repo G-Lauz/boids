@@ -8,15 +8,20 @@
 #include <sstream>
 #include <iostream>
 
-class Shader
+namespace boids 
 {
-    public:
-        GLuint id;
+    class Shader
+    {
+        public:
+            GLuint id;
 
-        Shader(const char* vertex_path, const char* fragment_path);
-        ~Shader();
+            Shader(const char* vertex_path, const char* fragment_path);
+            ~Shader();
 
-        void use();
-};
+            void use();
+
+            void set_mat_4(const std::string &name, const GLfloat* mat) const;
+    };
+}
 
 #endif // SHADER_H

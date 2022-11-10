@@ -1,6 +1,6 @@
 #include "shader.h"
 
-Shader::Shader(const char* vertex_path, const char* fragment_path) 
+boids::Shader::Shader(const char* vertex_path, const char* fragment_path) 
 {
     // Fetch shaders code
     // ------------------------------------------------------------------------
@@ -87,12 +87,17 @@ Shader::Shader(const char* vertex_path, const char* fragment_path)
     glDeleteShader(fragment);
 }
 
-Shader::~Shader()
+boids::Shader::~Shader()
 {
     glDeleteProgram(this->id);
 }
 
-void Shader::use() 
+void boids::Shader::use() 
 {
     glUseProgram(this->id);
+}
+
+void boids::Shader::set_mat_4(const std::string &name, const GLfloat* mat) const
+{
+    glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, GL_TRUE, mat);
 }

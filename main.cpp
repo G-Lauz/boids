@@ -9,6 +9,8 @@
 
 #include "build_config.h"
 #include "shader.h"
+#include "matrix.h"
+#include "quaternion.h"
 
 // Part  of GLFW context
 void error_callback(int error, const char* description)
@@ -118,6 +120,9 @@ int main(void)
     // uncomment this call to draw in wireframe polygons.
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    float scale = 0.0f;
+    float delta = 0.0001f;
+
     while (!glfwWindowShouldClose(window))
     {
         // Event loop
@@ -126,9 +131,23 @@ int main(void)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // create transformation
+        scale += delta;
+        if (scale >= 1.0f || scale <= -1.0f)
+            delta *= -1;
+
+        mat4 transform = mat4::indentity();
+        float translation[] = {0.0, (float)(scale*1/0.2), 0.0};
+        float axis[] = {0.0f, 0.0f, 1.0f};
+        transform.scale(0.2);
+        transform.rotate(0.785, axis);
+        // transform.rotate((float)glfwGetTime(), axis);
+        transform.translate(translation);
+
         // rendering after this call will use program (shaders)
         shader->use();
-
+        shader->set_mat_4("transform", transform.value_ptr());
+        
         // Draw stuff
         glBindVertexArray(vertex_array); // bind the vertex array to draw its object
         // glDrawArrays(GL_TRIANGLES, 0, 3);
